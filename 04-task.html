@@ -51,6 +51,9 @@
         .form-group input {
             width: 200px;
         }
+        .conformation{
+            display: none;
+        }
     </style>
 </head>
 
@@ -83,9 +86,28 @@
             <label for="age">Возраст</label>
             <input type="number" name="age">
         </div>
-        <input type="button" value="Save" id="saveButton">
+        <input type="button" value="Save" class="conformationShow">
+        <div class="conformation">
+            <input type="button" value="Yes" id="saveButton" class="conformationHide">
+            <input type="button" value="No" id="discardButton" class="conformationHide">
+        </div>
     </form>
     <script>
+       const conformation=document.getElementsByClassName("conformation")
+       const elements = document.getElementsByClassName("conformationShow");
+
+        [...elements].forEach( el => {
+        el.addEventListener("click",function(){
+            [...conformation].forEach(el=>{el.style.display="inline-block"})
+        })});
+       const elements2 = document.getElementsByClassName("conformationHide");
+
+        [...elements2].forEach( el => {
+        el.addEventListener("click",function(){
+            [...conformation].forEach(el=>{el.style.display="none"})
+        })});
+
+
 
         /*
         Задание:
@@ -262,6 +284,7 @@
 
         let userList = document.querySelector("#userList");
         let saveButton = document.querySelector("#saveButton");
+        let discardButton = document.querySelector("#discardButton");
 
         let listService = new ListService(users, userList, x => x.name.first + " " + x.name.last);
         let formService = new UserFormService(document.forms[0]);
@@ -276,6 +299,9 @@
 
         saveButton.addEventListener("click", function () {
             formService.saveForm();
+        });
+        discardButton.addEventListener("click", function () {
+            formService.fillForm(formService.currentUser);
         });
 
     </script>
