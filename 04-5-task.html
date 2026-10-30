@@ -15,6 +15,20 @@
             width: 200px;
             display: inline-block;
         }
+        .inline{
+            display: inline-block;
+        }
+        .hidebutton{
+            display: block;
+            margin-inline-start: 40px;
+    
+        }
+                .noninline{
+            display: block;
+
+    
+        }
+
 
         #userList>li {
             cursor: pointer;
@@ -54,14 +68,20 @@
         .conformation{
             display: none;
         }
+        /*#delete{
+            background-color:indianred
+        }*/
     </style>
 </head>
 
 <body>
-    <ul id="userList">
-    </ul>
+    <div class="inline">
+        <button id="hideAll" class="hidebutton">Hide</button>
+        <ul id="userList">
+        </ul>
+    </div>
 
-    <form id="output">
+    <form id="output" style="visibility: hidden;">
         <div class="form-group">
             <label for="firstName">Имя</label>
             <input type="text" name="firstName">
@@ -86,34 +106,56 @@
             <label for="age">Возраст</label>
             <input type="number" name="age">
         </div>
-        <input type="button" value="Save" class="conformationShow">
+        <input type="button" value="Save" class="conformationShow conformationHide">
         <div class="conformation">
             <input type="button" value="Yes" id="saveButton" class="conformationHide">
             <input type="button" value="No" id="discardButton" class="conformationHide">
+        </div>
+        <div >
+        <input type="button" id="clear" value="Clear"></input>
+        <input type="button" id="delete" value="Delete"></input>
         </div>
     </form>
     <script>
        const conformation=document.getElementsByClassName("conformation")
        const elements = document.getElementsByClassName("conformationShow");
-        const elements2 = document.getElementsByClassName("conformationHide");
-
-
+       const elements2 = document.getElementsByClassName("conformationHide");
+       const buttonhide = document.getElementById("hideAll");
+       const buttonclear = document.getElementById("clear");
+       const buttondelete = document.getElementById("delete");
+        let temp=false;
+        let isshown=false;
         [...elements2].forEach( el => {
         el.addEventListener("click",function(){
+            temp=isshown;
+            if(isshown){
             [...elements].forEach( el => {el.value="Save"});
             [...conformation].forEach(el=>{el.style.display="none"})
+            isshown=false;
+            }
         })});
 
         [...elements].forEach( el => {
         el.addEventListener("click",function(){
+            if(!temp){
             el.value="Save?";
             [...conformation].forEach(el=>{el.style.display="inline-block"})
+            isshown=true;
+            }
+            temp=isshown;
         })});
-       
+        buttonhide.addEventListener("click",function(){
+            listService.deselectAll()
+        })
+        buttonclear.addEventListener("click",function(){
+            formService.clearForm()
+        })
+        buttondelete.addEventListener("click",function(){
+            listService.delete()
+            listService.deselectAll()
+        })
 
-
-
-
+        
 
         /*
         Задание:
@@ -224,10 +266,12 @@
             }
         ];
         // класс для вывода информации в UL
+        const output = document.getElementById("output");
         class ListService {
             selectedData;
             data;
             listElement;
+            selectedid;
 
             constructor(data, listElement, displayFn) {
                 this.data = data;
@@ -239,21 +283,43 @@
                     let li = document.createElement("li");
                     li.textContent = displayFn(currentData);
                     li.dataset.index = index;
-
+                    console.log(this.listElement)
                     this.listElement.append(li);
                 }
             }
 
-            select(id) {
+            select(id) { 
+                this.selectedid=id
+                console.log(this.selectedid)
                 this.selectedData = this.data[id];
                 this.deselectAll();
+                output.style.visibility="visible"
                 this.listElement.children[id].classList.add("selected");
             }
 
             deselectAll() {
+                output.style.visibility="hidden"
                 for (let i = 0; i < this.listElement.children.length; i++) {
                     const child = this.listElement.children[i];
                     child.classList.remove("selected");
+                }
+            }
+
+            delete(id=this.selectedid){
+            if(id!=-1){
+                
+                for(var i=Number(id)+1;i<this.data.length;i++){
+                    console.log(`before: ${this.listElement.children[i].dataset.index}`)
+                    this.listElement.children[i].dataset.index=String(Number(this.listElement.children[i].dataset.index)-1);
+                    console.log(`after: ${this.listElement.children[i].dataset.index}`)
+                }
+                this.listElement.children[id].remove()
+                delete this.data[id]
+                for(var i=Number(id);i<this.data.length-1;i++){
+                    this.data[i]=this.data[i+1]
+                }
+                this.data.length--;
+                this.selectedid=-1;
                 }
             }
         }
@@ -277,6 +343,16 @@
                 this.form.email.value = user.email;
                 this.form.age.value = user.age;
             }
+            clearForm() {
+                this.currentUser = -1;
+
+                this.form.firstName.value = '';
+                this.form.lastName.value = '';
+                this.form.companyName.value = '';
+                this.form.balance.value = '';
+                this.form.email.value = '';
+                this.form.age.value = '';
+            }
 
             saveForm() {
                 this.currentUser.name.first = this.form.firstName.value;
@@ -297,7 +373,7 @@
 
         userList.addEventListener("click", function (e) {
             if (e.target.tagName != "LI") return;
-
+            
             const userNumber = e.target.dataset.index;
             listService.select(userNumber);
             formService.fillForm(listService.selectedData);
